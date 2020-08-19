@@ -4,7 +4,9 @@ import requests
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-pd.set_option('display.max_columns',10)
+
+pd.set_option('display.max_columns', 10)
+
 
 # TODO:
 # 1.下载数量
@@ -12,66 +14,87 @@ pd.set_option('display.max_columns',10)
 
 
 class Music_Download():
+    '''
+    流程：
 
-    def __init__(self, download_dir, count):
+
+    '''
+
+
+    def __init__(self, download_dir, count=20):
         self.orig_website = 'http://tool.liumingye.cn/music/?page=searchPage'
-        self.driver = webdriver.Chrome()
+        self.driver = webdriver.Chrome('E:\Music_spider\driver\chromedriver.exe')
         self.driver.implicitly_wait(5)
         self.download_dir = download_dir
         self.count = count
 
     def download_artist(self, artist):
+        # 下载统计表格
+        self.download_df = pd.DataFrame(columns=['Artist', 'Music_name', 'Type', 'Quality', 'Url'])
+
+        # 从原始页面搜索
         self.driver.get(self.orig_website)
         input_tag = self.driver.find_element_by_id('input')
         input_tag.send_keys(artist)
         input_tag.send_keys(Keys.ENTER)
         time.sleep(2)
+
+
         # href是JS生成的，如果直接寻找下载节点，没有href信息
         # download_links =self.driver.find_elements_by_css_selector("[class='btn btn-outline-secondary download']")
-        download_links = self.driver.find_elements_by_class_name('init')
 
-        # 下载统计表格
-        self.download_df = pd.DataFrame(columns=['Artist', 'Music_name', 'Type', 'Quality', 'Url'])
+        current_page = self.driver.find_element_by_class_name('aplayer-list')
+        #next_page = self.driver.find_element_by_class_name('aplayer-more')
 
-        for item in download_links:
-            # Attention：class name 中包含空格时会出现BUG，用CSS选择器可以实现
-            artist = item.find_element_by_css_selector("[class='aplayer-list-author']").text
-            title = item.find_element_by_css_selector("[class='aplayer-list-title']").text
-            print('正在下载：', artist, title)
+        downloader_icon = current_page.find_elements_by_css_selector("[class='aplayer-list-download iconfont icon-xiazai']")
+        repr()
 
-            downloader_icon = item.find_element_by_css_selector("[class='aplayer-list-download iconfont icon-xiazai']")
-            downloader_icon.click()
-            # Attention: 优化css选择器，减少误选
-            links = self.driver.find_elements_by_css_selector(
-                "[class='input-group-append']>[class='btn btn-outline-secondary download']")
-            back = self.driver.find_element_by_css_selector("[class='btn btn-primary']")
-            next_page = self.driver.find_element_by_css_selector("[class='aplayer-more']")
-            # 解析完成下载链接之后，要关闭dialog，返回上一级，从而实现遍历
-            links = [link.get_attribute('outerHTML') for link in links]
-            musical_urls,quality,type = self.data_clean(links)
-            #
-            download_df_temp = pd.DataFrame(columns=['Artist', 'Music_name', 'Type', 'Quality', 'Url'])
-            download_df_temp['Artist'] = [artist] * len(musical_urls)
-            download_df_temp['Music_name'] = [title] * len(musical_urls)
-            download_df_temp['Type']=type
-            download_df_temp['Quality']=quality
-            download_df_temp['Url'] = musical_urls
-            self.download_df=self.download_df.append(download_df_temp,ignore_index=True)
-            time.sleep(2)
-            back.click()
-
-            # 滚轮会影响按钮的点击
-            try:
-                self.driver.execute_script('window.scrollBy(0,50);')
-                time.sleep(1)
-            except:
-                next_page.click()
-                pass
-            #break
-
-        #print(download_df)
+        # for item in download_links:
+        #     # Attention：class name 中包含空格时会出现BUG，用CSS选择器可以实现
+        #     artist = item.find_element_by_css_selector("[class='aplayer-list-author']").text
+        #     title = item.find_element_by_css_selector("[class='aplayer-list-title']").text
+        #     print('正在解析：', artist, title)
+        #
+        #     downloader_icon = item.find_element_by_css_selector("[class='aplayer-list-download iconfont icon-xiazai']")
+        #     downloader_icon.click()
+        #     # Attention: 优化css选择器，减少误选
+        #     links = self.driver.find_elements_by_css_selector(
+        #         "[class='input-group-append']>[class='btn btn-outline-secondary download']")
+        #     back = self.driver.find_element_by_css_selector("[class='btn btn-primary']")
+        #     next_page = self.driver.find_element_by_css_selector("[class='aplayer-more']")
+        #     # 解析完成下载链接之后，要关闭dialog，返回上一级，从而实现遍历
+        #     links = [link.get_attribute('outerHTML') for link in links]
+        #     musical_urls, quality, type = self.data_clean(links)
+        #     #
+        #     download_df_temp = pd.DataFrame(columns=['Artist', 'Music_name', 'Type', 'Quality', 'Url'])
+        #     download_df_temp['Artist'] = [artist] * len(musical_urls)
+        #     download_df_temp['Music_name'] = [title] * len(musical_urls)
+        #     download_df_temp['Type'] = type
+        #     download_df_temp['Quality'] = quality
+        #     download_df_temp['Url'] = musical_urls
+        #     self.download_df = self.download_df.append(download_df_temp, ignore_index=True)
+        #     download_df_temp.drop(download_df_temp.index, inplace=True)
+        #
+        #     time.sleep(2)
+        #     back.click()
+        #
+        #     # 滚轮会影响按钮的点击
+        #     try:
+        #         self.driver.execute_script('window.scrollBy(0,50);')
+        #         time.sleep(1)
+        #     except:
+        #         next_page.click()
+        #         pass
+        #
+        # self.download_df.to_csv('./Download_info.csv', index=None, encoding='gb18030')
+        # print(self.download_df)
         self.driver.quit()
-       
+
+    def download_rank(self, rank_name):
+        pass
+
+
+
 
     def data_clean(self, links):
         # 对爬取的数据进行清洗
@@ -93,8 +116,8 @@ class Music_Download():
         token_m = re.compile('resourceType=')
         token_q = re.compile('toneFlag=')
 
-        type_list=[]
-        quality_list=[]
+        type_list = []
+        quality_list = []
         for url in musical_urls:
             type_pos = token_m.search(url).span()[1]
             type = url[type_pos:type_pos + 1]
@@ -103,9 +126,10 @@ class Music_Download():
             quality_pos = token_q.search(url).span()[1]
             quality = url[quality_pos:quality_pos + 2]
             quality_list.append(quality)
-        return musical_urls,quality_list,type_list
+        return musical_urls, quality_list, type_list
 
     def saver(self, message):
+
         # 下载log
         file_name = self.download_dir + 'download_log.txt'
         time_now = time.localtime()
@@ -119,9 +143,10 @@ class Music_Download():
 
 
 if __name__ == '__main__':
-    os.chdir('/home/jzy/Desktop/Scrapy_project')
-
+    # os.chdir('/home/jzy/Desktop/Scrapy_project')
+    os.chdir('E:\Music_spider')
     count = 50
     download_dir = '/media/jzy/Data/Music'
     downloader = Music_Download(download_dir, count)
     downloader.download_artist('周杰伦')
+    # downloader.download_rank()
