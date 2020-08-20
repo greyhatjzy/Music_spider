@@ -16,7 +16,6 @@ class Music_Download():
         self.count = int(count)
         self.now_time = datetime.datetime.now().strftime('%Y-%m-%d')
 
-
     def download_artist(self, artist):
         '''
         默认下载20首歌曲，超过20首时，点击 next page
@@ -85,19 +84,22 @@ class Music_Download():
         # 下载log
         file_name = self.download_dir + '\\' + self.now_time + '_download_log.txt'
         with open(file_name, 'a') as f:
-            f.write(json.dumps(message,ensure_ascii=False))
+            f.write(json.dumps(message, ensure_ascii=False))
             f.write('\n')
 
     def downloader(self, Artist, Music_name, Urls):
-        lrc_name = self.download_dir + '\\' +Artist + '_' + Music_name + '.lrc'
-        file_name =self.download_dir + '\\' + Artist + '_' + Music_name + '.mp3'
+        lrc_name = self.download_dir + '\\' + Artist + '_' + Music_name + '.lrc'
+        file_name = self.download_dir + '\\' + Artist + '_' + Music_name + '.mp3'
 
         lrc_url = Urls[-1]
         file = requests.get(lrc_url)
         with open(lrc_name, 'wb') as f:
             f.write(file.content)
 
-        file_url = Urls[-2]
+        if len(Urls) == 5:
+            file_url = Urls[-3]
+        elif len(Urls) < 5:
+            file_url = Urls[-2]
         file = requests.get(file_url)
         with open(file_name, 'wb') as f:
             f.write(file.content)
