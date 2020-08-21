@@ -10,7 +10,8 @@ class Music_Download():
 
     def __init__(self, download_dir, count=20):
         self.orig_website = 'http://tool.liumingye.cn/music/?page=searchPage'
-        self.driver = webdriver.Chrome('D:\Code\Music_spider\driver\chromedriver.exe')
+        self.driver = webdriver.Chrome()
+        #self.driver = webdriver.Chrome('D:\Code\Music_spider\driver\chromedriver.exe')
         self.driver.implicitly_wait(5)
         self.download_dir = download_dir
         self.count = int(count)
@@ -42,17 +43,21 @@ class Music_Download():
             info_json = {'Index': Index, 'Artist': Artist, 'Music_name': Music_name, 'Urls': Urls}
 
             self.saver(info_json)
-            self.downloader(Artist, Music_name, Urls)
+            try:
+                self.downloader(Artist, Music_name, Urls)
+            except:
+                print('下载失败')
 
             count += 1
             time.sleep(1)
 
             if count % 5 == 0:
-                self.driver.execute_script('window.scrollBy(0,150);')
+                self.driver.execute_script('window.scrollBy(0,180);')
 
             if count % 20 == 0:
                 next_page = self.driver.find_element_by_class_name('aplayer-more')
                 next_page.click()
+        self.driver.quit()
 
     def download_rank(self, rank_name):
         pass
@@ -82,14 +87,14 @@ class Music_Download():
 
     def saver(self, message):
         # 下载log
-        file_name = self.download_dir + '\\' + self.now_time + '_download_log.txt'
+        file_name = self.download_dir + '/' + self.now_time + '_download_log.txt'
         with open(file_name, 'a') as f:
             f.write(json.dumps(message, ensure_ascii=False))
             f.write('\n')
 
     def downloader(self, Artist, Music_name, Urls):
-        lrc_name = self.download_dir + '\\' + Artist + '_' + Music_name + '.lrc'
-        file_name = self.download_dir + '\\' + Artist + '_' + Music_name + '.mp3'
+        lrc_name = self.download_dir + '/' + Artist + '_' + Music_name + '.lrc'
+        file_name = self.download_dir + '/' + Artist + '_' + Music_name + '.mp3'
 
         lrc_url = Urls[-1]
         file = requests.get(lrc_url)
@@ -106,11 +111,10 @@ class Music_Download():
 
 
 if __name__ == '__main__':
-    # os.chdir('/home/jzy/Desktop/Scrapy_project')
-    os.chdir('D:\Code\Music_spider')
-    count = 50
-    download_dir = r'D:\Code\Music_spider\driver'
-    artists_list = ['周杰伦', '林俊杰']
+    os.chdir('/home/jzy/Desktop/Scrapy_project')
+    count = 20
+    download_dir = r'/home/jzy/Downloads/'
+    artists_list = ['新裤子']
     for artist in artists_list:
         downloader = Music_Download(download_dir, count)
         downloader.download_artist(artist)
