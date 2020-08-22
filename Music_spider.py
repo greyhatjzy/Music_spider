@@ -1,33 +1,28 @@
 # 下载歌曲的爬虫
-import time, os, re
+import time, os, datetime
+import json
 import requests
-import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
-pd.set_option('display.max_columns', 10)
-
-
-# TODO:
-# 1.下载数量
-# 2.滚轮的协调
-
 
 class Music_Download():
-    '''
-    流程：
-
-
-    '''
 
     def __init__(self, download_dir, count=20):
         self.orig_website = 'http://tool.liumingye.cn/music/?page=searchPage'
+        # self.driver = webdriver.Chrome()
         self.driver = webdriver.Chrome('D:\Code\Music_spider\driver\chromedriver.exe')
         self.driver.implicitly_wait(5)
         self.download_dir = download_dir
         self.count = int(count)
+        self.now_time = datetime.datetime.now().strftime('%Y-%m-%d')
 
     def download_artist(self, artist):
+        '''
+        默认下载20首歌曲，超过20首时，点击 next page
+        :param artist:
+        :return:
+        '''
 
         # 从原始页面搜索
         self.driver.get(self.orig_website)
@@ -40,105 +35,128 @@ class Music_Download():
         # download_links =self.driver.find_elements_by_css_selector("[class='btn btn-outline-secondary download']")
         current_page = self.driver.find_elements_by_tag_name("[class='aplayer-list'] li")
 
-        # if self.count >21:
-        #     next_page = self.driver.find_element_by_class_name('aplayer-more')
-        #     next_page.click()
-        for ind in range(1,self.count):
-            if self.count >21:
-                if ind%13==0:
-                    next_page = self.driver.find_element_by_class_name('aplayer-more')
-                    next_page.click()
-                for item in current_page:
-                    Index, Artist, Music_name, Urls = self.get_url(item)
-                    # print(Index, Artist, Music_name, Type,Quality,Url)
-                    # break
-                    lrc_url = Urls[-1]
-                    hq_url = Urls[-1]
+        count = 0
 
+        for item in current_page:
+            Index, Artist, Music_name, Urls = self.get_url(item)
+
+            info_json = {'Index': Index, 'Artist': Artist, 'Music_name': Music_name, 'Urls': Urls}
+
+            self.saver(info_json)
+            try:
+                self.downloader(Artist, Music_name, Urls)
+            except:
+                print('下载失败')
+
+            count += 1
+            time.sleep(1)
+
+            if count % 5 == 0:
+                self.driver.execute_script('window.scrollBy(0,180);')
+
+            if count % 20 == 0:
+                next_page = self.driver.find_element_by_class_name('aplayer-more')
+                next_page.click()
         self.driver.quit()
 
     def download_rank(self, rank_name):
         pass
 
-    def get_url(self, item):
+    def download_title(self, title):
+        '''
+        从3个主流媒体中搜索下载top N 的歌曲作为备选
+        '''
 
+        migu = 'http://tool.liumingye.cn/music/?page=audioPage&type=migu&name='
+        yqd = 'http://tool.liumingye.cn/music/?page=audioPage&type=YQD&name='
+        yqb = 'http://tool.liumingye.cn/music/?page=audioPage&type=YQB&name='
+        search_engin = {'migu': migu, 'yqd': yqd, 'yqb': yqb}
+        for engin in search_engin:
+            website = search_engin[engin] + title
+            self.driver.get(website)
+            current_page = self.driver.find_element_by_tag_name("[class='aplayer-list'] li")
+            Index, Artist, Music_name, Urls = self.get_url(current_page)
+            Artist = engin + '_' + Index + '_' + Artist
+            info_json = {'Index': Index, 'Artist': Artist, 'Music_name': Music_name, 'Urls': Urls}
+
+            self.saver(info_json)
+            try:
+                self.downloader(Artist, Music_name, Urls)
+            except:
+                print('下载失败')
+            time.sleep(1)
+        self.driver.quit()
+
+    def get_url(self, item):
         # Attention：class name 中包含空格时会出现BUG，用CSS选择器可以实现
+        # Attention: 优化css选择器，减少误选
         artist = item.find_element_by_css_selector("[class='aplayer-list-author']").text
         title = item.find_element_by_css_selector("[class='aplayer-list-title']").text
         index = item.find_element_by_css_selector("[class='aplayer-list-index']").text
         print('正在解析第%s首歌：' % int(index), artist, title)
 
-        downloader_icon = self.driver.find_element_by_css_selector("[class='aplayer-list-download iconfont icon-xiazai']")
-        downloader_icon.click()
-        # Attention: 优化css选择器，减少误选
-        back = self.driver.find_element_by_css_selector("[class='btn btn-primary']")
+        downloader_icon = item.find_element_by_css_selector(
+            "[class='aplayer-list-download iconfont icon-xiazai']")
 
-        # 解析完成下载链接之后，要关闭dialog，返回上一级，从而实现遍历
-        # link = []
+        try:
+            downloader_icon.click()
+        except:
+            # 悬停显示的元素上面这个用法会报错
+            self.driver.execute_script("arguments[0].click();", downloader_icon)
 
-        token_m = re.compile('resourceType=')
-        token_q = re.compile('toneFlag=')
         links = self.driver.find_elements_by_css_selector(
             "[class='input-group-append']>[class='btn btn-outline-secondary download']")
-
         links = [link.get_attribute('href') for link in links]
         links = list(filter(None, links))
+        # 解析完成下载链接之后，要关闭dialog，返回上一级，从而实现遍历
+        back = self.driver.find_element_by_css_selector("div>[class='btn btn-primary']")
+        time.sleep(1)
         back.click()
+
         return index, artist, title, links
 
-    def data_clean(self, links):
-        # 对爬取的数据进行清洗
-        # resourceType = 2    MP3格式    resourceType=E      FLAC格式
-        # toneFlag=LQ，PQ，HQ，SQ 品质递增
-        # 1.map出下载链接
-        # 2.选择MP3格式，按照品质权重递增
-
-        # musical_urls = []
-        # for link in links:
-        #     pattern = re.compile('http://..*channel=0')
-        #     musical_urls.append(pattern.findall(link))
-        # # 清除空值,去除list套壳，倒序
-        # musical_urls = list(filter(None, musical_urls))
-        # musical_urls = [musical_url[0] for musical_url in musical_urls]
-        # musical_urls.reverse()
-
-        # # URL筛选
-        token_m = re.compile('resourceType=')
-        token_q = re.compile('toneFlag=')
-
-        type_list = []
-        quality_list = []
-
-        links = list(filter(None, links))
-        for link in links:
-            print(link)
-            type_pos = token_m.search(link).span()[1]
-            type = link[type_pos:type_pos + 1]
-            type_list.append(type)
-
-            quality_pos = token_q.search(link).span()[1]
-            quality = link[quality_pos:quality_pos + 2]
-            quality_list.append(quality)
-
     def saver(self, message):
-
         # 下载log
-        file_name = self.download_dir + 'download_log.txt'
-        time_now = time.localtime()
-        with open(file_name, 'a') as f:
-            f.write(message)
+        file_name = self.download_dir + '/' + self.now_time + '_download_log.txt'
+        with open(file_name, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(message, ensure_ascii=False))
+            f.write('\n')
 
-    def downloader(url, file_name):
-        file = requests.get(url)
+    def downloader(self, Artist, Music_name, Urls):
+        lrc_name = self.download_dir + '/' + Artist + '_' + Music_name + '.lrc'
+        file_name = self.download_dir + '/' + Artist + '_' + Music_name + '.mp3'
+
+        lrc_url = Urls[-1]
+        file = requests.get(lrc_url)
+        with open(lrc_name, 'wb') as f:
+            f.write(file.content)
+
+        if len(Urls) == 5:
+            file_url = Urls[-3]
+        elif len(Urls) < 5:
+            file_url = Urls[-2]
+
+        file = requests.get(file_url)
         with open(file_name, 'wb') as f:
             f.write(file.content)
 
 
 if __name__ == '__main__':
-    # os.chdir('/home/jzy/Desktop/Scrapy_project')
     os.chdir('D:\Code\Music_spider')
-    count = 50
-    download_dir = '/media/jzy/Data/Music'
-    downloader = Music_Download(download_dir, count)
-    downloader.download_artist('周杰伦')
-    # downloader.download_rank()
+    count = 20
+    download_dir = r'D:\Code\Music_spider\driver'
+    artists_list = ['新裤子']
+    title_list = [
+        'PLANET ラムジ',
+        ' Butter-Fly 和田光司',
+        ' 名探侦コナン メイン・テーマ(银翼ヴァージョン)	大野克夫'
+    ]
+
+    # for artist in artists_list:
+    #     downloader = Music_Download(download_dir, count)
+    #     downloader.download_artist(artist)
+    #     print('.................%s...................' % artist, '下载完成')
+
+    for title in title_list:
+        downloader = Music_Download(download_dir, 1)
+        downloader.download_title(title)
