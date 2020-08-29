@@ -38,13 +38,13 @@ class Music_Download():
         count = 0
 
         for item in current_page:
-            Index, Artist, Music_name, Urls = self.get_url(item)
+            Index, Artist, Music_name, Cover, Urls = self.get_url(item)
 
             info_json = {'Index': Index, 'Artist': Artist, 'Music_name': Music_name, 'Urls': Urls}
 
             self.saver(info_json)
             try:
-                self.downloader(Artist, Music_name, Urls)
+                self.downloader(Artist, Music_name, Cover, Urls)
             except:
                 print('下载失败')
 
@@ -93,6 +93,8 @@ class Music_Download():
         artist = item.find_element_by_css_selector("[class='aplayer-list-author']").text
         title = item.find_element_by_css_selector("[class='aplayer-list-title']").text
         index = item.find_element_by_css_selector("[class='aplayer-list-index']").text
+        cover = item.find_element_by_css_selector("[class='btn btn-outline-secondary pic_download']").get_attribute(
+            'href')
         print('正在解析第%s首歌：' % int(index), artist, title)
 
         downloader_icon = item.find_element_by_css_selector(
@@ -113,7 +115,7 @@ class Music_Download():
         time.sleep(1)
         back.click()
 
-        return index, artist, title, links
+        return index, artist, title, cover, links
 
     def saver(self, message):
         # 下载log
@@ -122,9 +124,14 @@ class Music_Download():
             f.write(json.dumps(message, ensure_ascii=False))
             f.write('\n')
 
-    def downloader(self, Artist, Music_name, Urls):
+    def downloader(self, Artist, Music_name, Cover, Urls):
         lrc_name = self.download_dir + '/' + Artist + '_' + Music_name + '.lrc'
         file_name = self.download_dir + '/' + Artist + '_' + Music_name + '.mp3'
+        cover_name = self.download_dir + '/' + Artist + '_' + Music_name + '.jpg'
+
+        file = requests.get(Cover)
+        with open(cover_name, 'wb') as f:
+            f.write(file.content)
 
         lrc_url = Urls[-1]
         file = requests.get(lrc_url)
@@ -142,9 +149,9 @@ class Music_Download():
 
 
 if __name__ == '__main__':
-    os.chdir('D:\Code\Music_spider')
+    os.chdir(r'E:\Music_spider')
     count = 20
-    download_dir = r'D:\Code\Music_spider\driver'
+    download_dir = r'E:\Music_spider\driver'
     artists_list = ['新裤子']
     title_list = [
         'PLANET ラムジ',
