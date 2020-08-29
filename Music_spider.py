@@ -11,7 +11,7 @@ class Music_Download():
     def __init__(self, download_dir, count=20):
         self.orig_website = 'http://tool.liumingye.cn/music/?page=searchPage'
         # self.driver = webdriver.Chrome()
-        self.driver = webdriver.Chrome('D:\Code\Music_spider\driver\chromedriver.exe')
+        self.driver = webdriver.Chrome('E:\Music_spider\driver\chromedriver.exe')
         self.driver.implicitly_wait(5)
         self.download_dir = download_dir
         self.count = int(count)
@@ -75,13 +75,13 @@ class Music_Download():
             website = search_engin[engin] + title
             self.driver.get(website)
             current_page = self.driver.find_element_by_tag_name("[class='aplayer-list'] li")
-            Index, Artist, Music_name, Urls = self.get_url(current_page)
+            Index, Artist, Music_name, Cover, Urls = self.get_url(current_page)
             Artist = engin + '_' + Index + '_' + Artist
             info_json = {'Index': Index, 'Artist': Artist, 'Music_name': Music_name, 'Urls': Urls}
 
             self.saver(info_json)
             try:
-                self.downloader(Artist, Music_name, Urls)
+                self.downloader(Artist, Music_name, Cover,Urls)
             except:
                 print('下载失败')
             time.sleep(1)
@@ -93,8 +93,7 @@ class Music_Download():
         artist = item.find_element_by_css_selector("[class='aplayer-list-author']").text
         title = item.find_element_by_css_selector("[class='aplayer-list-title']").text
         index = item.find_element_by_css_selector("[class='aplayer-list-index']").text
-        cover = item.find_element_by_css_selector("[class='btn btn-outline-secondary pic_download']").get_attribute(
-            'href')
+
         print('正在解析第%s首歌：' % int(index), artist, title)
 
         downloader_icon = item.find_element_by_css_selector(
@@ -110,6 +109,12 @@ class Music_Download():
             "[class='input-group-append']>[class='btn btn-outline-secondary download']")
         links = [link.get_attribute('href') for link in links]
         links = list(filter(None, links))
+
+        cover = self.driver.find_element_by_css_selector(
+            "[class='btn btn-outline-secondary pic_download']").get_attribute(
+            'href')
+
+        print(cover)
         # 解析完成下载链接之后，要关闭dialog，返回上一级，从而实现遍历
         back = self.driver.find_element_by_css_selector("div>[class='btn btn-primary']")
         time.sleep(1)
