@@ -194,8 +194,8 @@ class Music_Download():
 if __name__ == '__main__':
     os.chdir(r'D:\Code\Music_spider')
     count = 30
-    download_dir = r'D:\迅雷下载'
-    artists_list = ['周杰伦', '薛之谦', '邓紫棋', '林俊杰', '陈奕迅', '许嵩', '毛不易', '王力宏', '林宥嘉', '五月天', '杨千嬅', '张信哲', ]
+    download_dir = r'\\RASPBERRYPI\BackUp\Music'
+    artists_list = ['林肯公园']
     title_list = [
         'PLANET ラムジ',
         ' Butter-Fly 和田光司',
