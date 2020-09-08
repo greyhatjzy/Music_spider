@@ -16,12 +16,12 @@ class Music_Download():
         option.add_argument('headless')
         # self.driver = webdriver.Chrome()
         # self.driver = webdriver.Chrome(chrome_options=option)
-        # self.driver = webdriver.Chrome('D:\Code\Music_spider\driver\chromedriver.exe', chrome_options=option)
-        self.driver = webdriver.Chrome('D:\Code\Music_spider\driver\chromedriver.exe')
+        self.driver = webdriver.Chrome('D:\Code\Music_spider\driver\chromedriver.exe', options=option)
+        # self.driver = webdriver.Chrome('D:\Code\Music_spider\driver\chromedriver.exe')
 
         self.driver.implicitly_wait(5)
         self.download_dir = download_dir
-        self.count = int(count)
+        self.count = int(count)+1
         self.now_time = datetime.datetime.now().strftime('%Y-%m-%d')
 
     def download_artist(self, artist, ifcontinue=False):
@@ -135,7 +135,6 @@ class Music_Download():
         title = item.find_element_by_css_selector("[class='aplayer-list-title']").text
         index = int(item.find_element_by_css_selector("[class='aplayer-list-index']").text)
 
-
         downloader_icon = item.find_element_by_css_selector(
             "[class='aplayer-list-download iconfont icon-xiazai']")
 
@@ -195,8 +194,8 @@ class Music_Download():
 if __name__ == '__main__':
     os.chdir(r'D:\Code\Music_spider')
     count = 30
-    download_dir = r'D:\Code\Music_spider'
-    artists_list = ['泰勒斯威夫特']
+    download_dir = r'D:\迅雷下载'
+    artists_list = ['周杰伦', '薛之谦', '邓紫棋', '林俊杰', '陈奕迅', '许嵩', '毛不易', '王力宏', '林宥嘉', '五月天', '杨千嬅', '张信哲', ]
     title_list = [
         'PLANET ラムジ',
         ' Butter-Fly 和田光司',
