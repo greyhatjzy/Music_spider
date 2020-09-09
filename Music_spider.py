@@ -21,7 +21,7 @@ class Music_Download():
 
         self.driver.implicitly_wait(5)
         self.download_dir = download_dir
-        self.count = int(count)+1
+        self.count = int(count) + 1
         self.now_time = datetime.datetime.now().strftime('%Y-%m-%d')
 
     def download_artist(self, artist, ifcontinue=False):
@@ -121,7 +121,9 @@ class Music_Download():
             info_json = {'Index': Index, 'Artist': Artist, 'Music_name': Music_name, 'Urls': Urls}
 
             self.saver(info_json)
+
             try:
+                print('正在下载第%d首歌，引擎: %s -' % (Index,engin ), Artist + '_' + Music_name)
                 self.downloader(Artist, Music_name, Cover, Urls)
             except:
                 print('下载失败')
@@ -212,7 +214,6 @@ if __name__ == '__main__':
     for title in title_list:
         downloader = Music_Download(download_dir, 1)
         downloader.download_title(title)
-
 
     # for rank in rank_list:
     #     downloader = Music_Download(download_dir, 100)
