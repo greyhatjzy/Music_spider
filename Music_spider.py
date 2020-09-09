@@ -117,7 +117,7 @@ class Music_Download():
             self.driver.get(website)
             current_page = self.driver.find_element_by_tag_name("[class='aplayer-list'] li")
             Index, Artist, Music_name, Cover, Urls = self.get_url(current_page)
-            Artist = engin + '_' + Index + '_' + Artist
+            Artist = engin + '_' + str(Index) + '_' + Artist
             info_json = {'Index': Index, 'Artist': Artist, 'Music_name': Music_name, 'Urls': Urls}
 
             self.saver(info_json)
@@ -194,7 +194,7 @@ class Music_Download():
 if __name__ == '__main__':
     os.chdir(r'D:\Code\Music_spider')
     count = 30
-    download_dir = r'\\RASPBERRYPI\BackUp\Music'
+    download_dir = r'D:\temp'
     artists_list = ['林肯公园']
     title_list = [
         'PLANET ラムジ',
@@ -204,16 +204,16 @@ if __name__ == '__main__':
     rank_list = [
         r'http://tool.liumingye.cn/music/?page=audioPage&type=YQD&name=https%3A%2F%2Fmusic.163.com%2F%23%2Fplaylist%3Fid%3D2829883282']
 
-    for artist in artists_list:
-        downloader = Music_Download(download_dir, count)
-        downloader.download_artist(artist)
-        print('.................%s...................' % artist, '下载完成')
+    # for artist in artists_list:
+    #     downloader = Music_Download(download_dir, count)
+    #     downloader.download_artist(artist)
+    #     print('.................%s...................' % artist, '下载完成')
 
-    # for title in title_list:
-    #     downloader = Music_Download(download_dir, 1)
-    #     downloader.download_title(title)
-    #     break
-    #
+    for title in title_list:
+        downloader = Music_Download(download_dir, 1)
+        downloader.download_title(title)
+
+
     # for rank in rank_list:
     #     downloader = Music_Download(download_dir, 100)
     #     downloader.download_rank(rank)
