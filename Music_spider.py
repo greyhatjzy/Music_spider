@@ -16,8 +16,8 @@ class Music_Download():
         option.add_argument('headless')
         # self.driver = webdriver.Chrome()
         # self.driver = webdriver.Chrome(chrome_options=option)
-        self.driver = webdriver.Chrome('D:\Code\Music_spider\driver\chromedriver.exe', options=option)
-        # self.driver = webdriver.Chrome('D:\Code\Music_spider\driver\chromedriver.exe')
+        # self.driver = webdriver.Chrome('D:\Code\Music_spider\driver\chromedriver.exe', options=option)
+        self.driver = webdriver.Chrome('D:\Code\Music_spider\driver\chromedriver.exe')
 
         self.driver.implicitly_wait(5)
         self.download_dir = download_dir
@@ -40,7 +40,7 @@ class Music_Download():
         for item in current_page:
             index, Artist, Music_name, Cover, Urls = self.get_url(item)
             if index < self.count:
-                print('正在解析第%s首歌：' % index, artist, '-', Music_name)
+                print('正在解析第%s首歌：' % index, Artist, '-', Music_name)
                 info_json = {'Index': index, 'Artist': Artist, 'Music_name': Music_name, 'Urls': Urls}
                 self.saver(info_json)
 
@@ -83,6 +83,7 @@ class Music_Download():
 
         for item in current_page:
             Index, Artist, Music_name, Cover, Urls = self.get_url(item)
+            print('正在解析第%s首歌：' % Index, Artist, '-', Music_name)
 
             info_json = {'Index': Index, 'Artist': Artist, 'Music_name': Music_name, 'Urls': Urls}
 
@@ -98,9 +99,6 @@ class Music_Download():
             if count % 5 == 0:
                 self.driver.execute_script('window.scrollBy(0,180);')
 
-            if count % 20 == 0:
-                next_page = self.driver.find_element_by_class_name('aplayer-more')
-                next_page.click()
         self.driver.quit()
 
     def download_title(self, title):
@@ -123,7 +121,7 @@ class Music_Download():
             self.saver(info_json)
 
             try:
-                print('正在下载第%d首歌，引擎: %s -' % (Index,engin ), Artist + '_' + Music_name)
+                print('正在下载第%d首歌，引擎: %s -' % (Index, engin), Artist + '_' + Music_name)
                 self.downloader(Artist, Music_name, Cover, Urls)
             except:
                 print('下载失败')
@@ -204,17 +202,17 @@ if __name__ == '__main__':
         ' 名探侦コナン メイン・テーマ(银翼ヴァージョン)	大野克夫'
     ]
     rank_list = [
-        r'http://tool.liumingye.cn/music/?page=audioPage&type=YQD&name=https%3A%2F%2Fmusic.163.com%2F%23%2Fplaylist%3Fid%3D2829883282']
+        r'http://tool.liumingye.cn/music/?page=audioPage&type=migu&name=https%3A%2F%2Fy.music.163.com%2Fm%2Fplaylist%3Fid%3D752385924%26creatorId%3D500939979%26userid%3D500939979']
 
     # for artist in artists_list:
     #     downloader = Music_Download(download_dir, count)
     #     downloader.download_artist(artist)
     #     print('.................%s...................' % artist, '下载完成')
 
-    for title in title_list:
-        downloader = Music_Download(download_dir, 1)
-        downloader.download_title(title)
+    # for title in title_list:
+    #     downloader = Music_Download(download_dir, 1)
+    #     downloader.download_title(title)
 
-    # for rank in rank_list:
-    #     downloader = Music_Download(download_dir, 100)
-    #     downloader.download_rank(rank)
+    for rank in rank_list:
+        downloader = Music_Download(download_dir, 100)
+        downloader.download_rank(rank)
