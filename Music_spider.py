@@ -1,5 +1,6 @@
 # 下载歌曲的爬虫
-import time, os, datetime
+import time, os, datetime, re
+from urllib.parse import quote
 import json
 import requests
 from selenium import webdriver
@@ -23,6 +24,19 @@ class Music_Download():
         self.download_dir = download_dir
         self.count = int(count) + 1
         self.now_time = datetime.datetime.now().strftime('%Y-%m-%d')
+
+    def search(self, item, ifcontinue):
+        # TODO: 默认了搜索引擎
+
+        # 从原始页面搜索
+        if ifcontinue:
+            pass
+        else:
+            self.driver.get(self.orig_website)
+            input_tag = self.driver.find_element_by_id('input')
+            input_tag.send_keys(item)
+            input_tag.send_keys(Keys.ENTER)
+            time.sleep(2)
 
     def download_artist(self, artist, ifcontinue=False):
         '''
@@ -62,20 +76,11 @@ class Music_Download():
                 break
         self.driver.quit()
 
-    def search(self, artist, ifcontinue):
-        # TODO: 默认了搜索引擎
-
-        # 从原始页面搜索
-        if ifcontinue:
-            pass
-        else:
-            self.driver.get(self.orig_website)
-            input_tag = self.driver.find_element_by_id('input')
-            input_tag.send_keys(artist)
-            input_tag.send_keys(Keys.ENTER)
-            time.sleep(2)
-
     def download_rank(self, rank_name):
+        migu = 'http://tool.liumingye.cn/music/?page=audioPage&type=migu&name='
+
+        rank_name = migu + quote(rank_name, 'utf-8')
+
         self.driver.get(rank_name)
 
         current_page = self.driver.find_elements_by_tag_name("[class='aplayer-list'] li")
@@ -202,7 +207,8 @@ if __name__ == '__main__':
         ' 名探侦コナン メイン・テーマ(银翼ヴァージョン)	大野克夫'
     ]
     rank_list = [
-        r'http://tool.liumingye.cn/music/?page=audioPage&type=migu&name=https%3A%2F%2Fy.music.163.com%2Fm%2Fplaylist%3Fid%3D752385924%26creatorId%3D500939979%26userid%3D500939979']
+        'https://y.music.163.com/m/playlist?id=752385924&creatorId=500939979&userid=500939979',
+    ]
 
     # for artist in artists_list:
     #     downloader = Music_Download(download_dir, count)
