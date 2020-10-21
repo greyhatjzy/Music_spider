@@ -1,5 +1,5 @@
 # 下载歌曲的爬虫
-import time, os, datetime, re
+import time, os, datetime
 from urllib.parse import quote
 import json
 import requests
@@ -18,7 +18,7 @@ class Music_Download():
         # self.driver = webdriver.Chrome()
         # self.driver = webdriver.Chrome(chrome_options=option)
         # self.driver = webdriver.Chrome('D:\Code\Music_spider\driver\chromedriver.exe', options=option)
-        self.driver = webdriver.Chrome('D:\Code\Music_spider\driver\chromedriver.exe')
+        self.driver = webdriver.Chrome(r'D:\Code\Music_spider\driver\chromedriver.exe', options=option)
 
         self.driver.implicitly_wait(5)
         self.download_dir = download_dir
@@ -33,6 +33,7 @@ class Music_Download():
             pass
         else:
             self.driver.get(self.orig_website)
+
             input_tag = self.driver.find_element_by_id('input')
             input_tag.send_keys(item)
             input_tag.send_keys(Keys.ENTER)
@@ -41,7 +42,6 @@ class Music_Download():
     def download_artist(self, artist, ifcontinue=False):
         '''
         默认下载20首歌曲，超过20首时，点击 next page
-
         '''
 
         self.search(artist, ifcontinue)
@@ -109,12 +109,14 @@ class Music_Download():
     def download_title(self, title):
         '''
         从3个主流媒体中搜索下载top N 的歌曲作为备选
+
+        http://tool.liumingye.cn/music/?page=audioPage&type=migu&name=blackpink
         '''
 
         migu = 'http://tool.liumingye.cn/music/?page=audioPage&type=migu&name='
         yqd = 'http://tool.liumingye.cn/music/?page=audioPage&type=YQD&name='
         yqb = 'http://tool.liumingye.cn/music/?page=audioPage&type=YQB&name='
-        search_engin = {'migu': migu, 'yqd': yqd, 'yqb': yqb}
+        search_engin = {'migu': migu}
         for engin in search_engin:
             website = search_engin[engin] + title
             self.driver.get(website)
@@ -171,6 +173,7 @@ class Music_Download():
         with open(file_name, 'a', encoding='utf-8') as f:
             f.write(json.dumps(message, ensure_ascii=False))
             f.write('\n')
+        time.sleep(1)
 
     def downloader(self, Artist, Music_name, Cover, Urls):
         lrc_name = self.download_dir + '/' + Artist + '_' + Music_name + '.lrc'
@@ -186,28 +189,27 @@ class Music_Download():
         with open(lrc_name, 'wb') as f:
             f.write(file.content)
 
-        if len(Urls) == 5:
-            file_url = Urls[-3]
-        elif len(Urls) < 5:
-            file_url = Urls[-2]
-
+        # 此处URL 筛选要用 正则匹配 
+        file_url = Urls[-3]
         file = requests.get(file_url)
         with open(file_name, 'wb') as f:
             f.write(file.content)
+
 
 
 if __name__ == '__main__':
     os.chdir(r'D:\Code\Music_spider')
     count = 30
     download_dir = r'D:\temp'
-    artists_list = ['林肯公园']
+    artists_list = ['BLACKPINK']
     title_list = [
-        'PLANET ラムジ',
-        ' Butter-Fly 和田光司',
+        'BLACKPINK',
+        '五月天',
         ' 名探侦コナン メイン・テーマ(银翼ヴァージョン)	大野克夫'
     ]
     rank_list = [
-        'https://y.music.163.com/m/playlist?id=752385924&creatorId=500939979&userid=500939979',
+
+        "https://music.163.com/#/playlist?id=319973131"
     ]
 
     # for artist in artists_list:
@@ -216,7 +218,7 @@ if __name__ == '__main__':
     #     print('.................%s...................' % artist, '下载完成')
 
     # for title in title_list:
-    #     downloader = Music_Download(download_dir, 1)
+    #     downloader = Music_Download(download_dir, 30)
     #     downloader.download_title(title)
 
     for rank in rank_list:

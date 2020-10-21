@@ -7,9 +7,20 @@ from selenium.webdriver.common.keys import Keys
 
 
 class Downloader():
+    '''
+    不要搜索这个功能了，还是直接链接拼接比较好
+
+    歌曲计数这个函数要拎出来，不能放在里面
+
+    artist 和 title 这个
+
+    '''
 
     def __init__(self):
-        pass
+        self.migu = 'http://tool.liumingye.cn/music/?page=audioPage&type=migu&name='
+        self.yqd = 'http://tool.liumingye.cn/music/?page=audioPage&type=YQD&name='
+        self.yqb = 'http://tool.liumingye.cn/music/?page=audioPage&type=YQB&name='
+
 
     def _get_url(self, item):
         # Attention：class name 中包含空格时会出现BUG，用CSS选择器可以实现
@@ -52,7 +63,7 @@ class Downloader():
             f.write(json.dumps(message, ensure_ascii=False))
             f.write('\n')
 
-    def _downloader(self, Artist, Music_name, Cover, Urls):
+    def downloader(self, Artist, Music_name, Cover, Urls):
         lrc_name = self.download_dir + '/' + Artist + '_' + Music_name + '.lrc'
         file_name = self.download_dir + '/' + Artist + '_' + Music_name + '.mp3'
         cover_name = self.download_dir + '/' + Artist + '_' + Music_name + '.jpg'
@@ -77,8 +88,12 @@ class Downloader():
 
 
 class Rank_spider(Downloader):
+    '''
+    直接解析QQ和网易云的歌单
+    '''
 
     def __init__(self, Rank, engine='All', ifpop=True):
+
         pass
 
     def download(self):
@@ -90,11 +105,16 @@ class Artist_spider(Downloader):
     def __init__(self, engine='All', ifpop=True):
         pass
 
-    def download(self,Artist,download_path,):
+    def download(self,count):
         pass
+
+
 
 class Title_spider(Downloader):
     def __init__(self, Title_spider, engine='All', ifpop=True):
+        pass
+
+    def download(self, Artist, download_path, ):
         pass
 
 
@@ -112,7 +132,11 @@ if __name__ == '__main__':
         'https://y.music.163.com/m/playlist?id=752385924&creatorId=500939979&userid=500939979',
     ]
 
+    music = Artist_spider()
+    music.download(artists_list,50)
 
-    music=Artist_spider()
-    music.download()
+    music = Title_spider()
+    music.download(title_list)
 
+    music = Rank_spider()
+    music.download(rank_list)

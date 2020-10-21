@@ -39,7 +39,9 @@ for issue_id in range(1, 0, -1):
     temp['Abstract'] = pd.Series(abstracts)
     temp['Flag'] = 'Abstract'
 
+    # 应该两个Key来merge
     results_tabel = pd.merge(results_tabel[results_tabel['Flag'] == 'Abstract'], temp, on='Flag', how='left')
 
     file_name = 'Result_90_' + str(issue_id) + '.csv'
     results_tabel.to_csv(file_name, index=None, encoding='gb18030')
+    break
