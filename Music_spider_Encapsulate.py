@@ -6,23 +6,47 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
 
+'''
+Downloader作为父类，Rank,Title,Artist 作为子类
+在父类里定义的操作
+    count
+    next page
+    
+
+直接链接拼接比较好
+歌曲下载计数
+
+子类 输入参数  ：Artist Title Acount OutputDir SearchEngine 
+
+
+Rank    直接解析QQ或者网易云的链接
+Title   +数据库选择
+Artist  +数据库选择
+
+
+
+
+
+
+
+
+'''
+
+
 class Downloader():
-    '''
-    不要搜索这个功能了，还是直接链接拼接比较好
-
-    歌曲计数这个函数要拎出来，不能放在里面
-
-    artist 和 title 这个
-
-    '''
 
     def __init__(self):
         self.migu = 'http://tool.liumingye.cn/music/?page=audioPage&type=migu&name='
         self.yqd = 'http://tool.liumingye.cn/music/?page=audioPage&type=YQD&name='
         self.yqb = 'http://tool.liumingye.cn/music/?page=audioPage&type=YQB&name='
 
+        # 设置option,不显示浏览器窗口,最大等待5秒
+        option = webdriver.ChromeOptions()
+        option.add_argument('headless')
+        self.driver = webdriver.Chrome(r'D:\Code\Music_spider\driver\chromedriver.exe', options=option)
+        self.driver.implicitly_wait(5)
 
-    def _get_url(self, item):
+    def _get_info(self, item):
         # Attention：class name 中包含空格时会出现BUG，用CSS选择器可以实现
         # Attention: 优化css选择器，减少误选
         artist = item.find_element_by_css_selector("[class='aplayer-list-author']").text
@@ -63,7 +87,7 @@ class Downloader():
             f.write(json.dumps(message, ensure_ascii=False))
             f.write('\n')
 
-    def downloader(self, Artist, Music_name, Cover, Urls):
+    def _downloader(self, Artist, Music_name, Cover, Urls):
         lrc_name = self.download_dir + '/' + Artist + '_' + Music_name + '.lrc'
         file_name = self.download_dir + '/' + Artist + '_' + Music_name + '.mp3'
         cover_name = self.download_dir + '/' + Artist + '_' + Music_name + '.jpg'
@@ -86,27 +110,42 @@ class Downloader():
         with open(file_name, 'wb') as f:
             f.write(file.content)
 
+    def nextpage(self):
+        pass
+
+
+
+
+
 
 class Rank_spider(Downloader):
     '''
-    直接解析QQ和网易云的歌单
+    如果不是网易云或者QQ的链接，尝试当作Mymp3的解析
     '''
 
-    def __init__(self, Rank, engine='All', ifpop=True):
-
-        pass
-
-    def download(self):
-
-        pass
-
-
-class Artist_spider(Downloader):
     def __init__(self, engine='All', ifpop=True):
         pass
 
-    def download(self,count):
+    def parse(self,Rank):
         pass
+
+
+
+class Artist_spider(Downloader):
+
+    def __init__(self, engine='All', ifpop=True):
+        super(Artist_spider, self).__init__()
+        pass
+
+    def download(self,artist, count , download_dir):
+        download_page = self.migu+artist
+
+        self.driver.get(download_page)
+        print(download_page)
+        self.driver.quit()
+
+
+
 
 
 
@@ -122,7 +161,7 @@ if __name__ == '__main__':
     os.chdir(r'D:\Code\Music_spider')
     count = 30
     download_dir = r'D:\temp'
-    artists_list = ['林肯公园']
+    artist = '林肯公园'
     title_list = [
         'PLANET ラムジ',
         ' Butter-Fly 和田光司',
@@ -133,10 +172,5 @@ if __name__ == '__main__':
     ]
 
     music = Artist_spider()
-    music.download(artists_list,50)
+    music.download(artist,50,download_dir)
 
-    music = Title_spider()
-    music.download(title_list)
-
-    music = Rank_spider()
-    music.download(rank_list)

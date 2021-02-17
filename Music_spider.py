@@ -200,7 +200,7 @@ class Music_Download():
 if __name__ == '__main__':
     os.chdir(r'D:\Code\Music_spider')
     count = 30
-    download_dir = r'D:\temp'
+    download_dir = r'D:\temp3'
     artists_list = ['BLACKPINK']
     title_list = [
         'BLACKPINK',
@@ -209,7 +209,7 @@ if __name__ == '__main__':
     ]
     rank_list = [
 
-        "https://music.163.com/#/playlist?id=319973131"
+        "http://music.163.com/playlist?id=488635958&userid=336730236"
     ]
 
     # for artist in artists_list:
